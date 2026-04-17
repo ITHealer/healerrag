@@ -1,0 +1,35 @@
+# Usage: docker compose -f docker-compose.services.yml up -d
+# Chạy postgres + chromadb standalone
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: healerrag-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: healerrag
+    ports:
+      - "5002:5432"
+    volumes:
+      - healerrag_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: healerrag-chromadb
+    ports:
+      - "8002:8000"
+    volumes:
+      - healerrag_chroma_data:/chroma/chroma
+    environment:
+      - IS_PERSISTENT=TRUE
+      - ANONYMIZED_TELEMETRY=FALSE
+
+volumes:
+  healerrag_postgres_data:
+  healerrag_chroma_data:
