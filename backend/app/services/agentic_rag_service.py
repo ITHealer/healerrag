@@ -20,14 +20,14 @@ from sqlalchemy import select, delete
 from app.core.config import settings
 from app.models.document import Document, DocumentImage, DocumentTable, DocumentStatus
 from app.services.document_parser import get_document_parser
-from app.services.knowledge_graph_service import KnowledgeGraphService
-from app.services.deep_retriever import DeepRetriever
-from app.services.embedder import EmbeddingService, get_embedding_service
-from app.services.vector_store import VectorStore, get_vector_store
-from app.services.reranker import get_reranker_service
+from app.services.knowledge_graph.knowledge_graph_service import KnowledgeGraphService
+from app.services.retrieval.deep_retriever import DeepRetriever
+from app.services.embeddings.embedder import EmbeddingService, get_embedding_service
+from app.services.retrieval.vector_store import VectorStore, get_vector_store
+from app.services.retrieval.reranker import get_reranker_service
 from app.services.rag_service import RAGQueryResult, RetrievedChunk
 from app.services.models.parsed_document import DeepRetrievalResult
-from app.services.chunk_dedup import deduplicate_chunks
+from app.services.chunking.chunk_dedup import deduplicate_chunks
 
 logger = logging.getLogger(__name__)
 

@@ -36,6 +36,25 @@ class BaseDocumentParser(ABC):
             settings.BASE_DIR / "data" / self.parser_name / f"kb_{workspace_id}"
         )
 
+    def _get_served_workspace_dir(self) -> Path:
+        """
+        Return the workspace directory used by the shared static image route.
+
+        The current API contract serves document images from:
+        `/static/doc-images/kb_<workspace_id>/images/<image_id>.png`
+
+        To keep that contract stable across parsers, extracted images should be
+        written under the shared `data/docling/kb_<workspace_id>` tree even when
+        the parser-specific working directory is different.
+        """
+        return settings.BASE_DIR / "data" / "docling" / f"kb_{self.workspace_id}"
+
+    def _get_served_images_dir(self) -> Path:
+        """Return the shared image directory mounted by FastAPI static files."""
+        images_dir = self._get_served_workspace_dir() / "images"
+        images_dir.mkdir(parents=True, exist_ok=True)
+        return images_dir
+
     # ------------------------------------------------------------------
     # Abstract interface
     # ------------------------------------------------------------------

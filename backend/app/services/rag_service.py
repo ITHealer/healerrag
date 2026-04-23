@@ -14,10 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 
 from app.models.document import Document, DocumentStatus
-from app.services.document_loader import load_document, LoadedDocument
-from app.services.chunker import DocumentChunker, TextChunk
-from app.services.embedder import EmbeddingService, get_embedding_service
-from app.services.vector_store import VectorStore, get_vector_store
+from app.services.loader.document_loader import load_document, LoadedDocument
+from app.services.chunking.chunker import DocumentChunker, TextChunk
+from app.services.embeddings.embedder import EmbeddingService, get_embedding_service
+from app.services.retrieval.vector_store import VectorStore, get_vector_store
 
 logger = logging.getLogger(__name__)
 

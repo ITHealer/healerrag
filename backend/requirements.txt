@@ -22,6 +22,12 @@ docling>=2.0.0
 # Activate with: HEALERRAG_DOCUMENT_PARSER=marker
 marker-pdf[full]>=1.10.0
 
+# Document parsing (MinerU — official CLI/VLM parser)
+# Install with: pip install "mineru[all]"
+# Activate with: HEALERRAG_DOCUMENT_PARSER=mineru
+mineru[all]>=3.1.0
+huggingface-hub>=0.23.0
+
 # Text processing
 langchain-text-splitters>=0.0.1
 

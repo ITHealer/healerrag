@@ -26,17 +26,28 @@ def get_document_parser(
     """Create a document parser based on ``HEALERRAG_DOCUMENT_PARSER`` config."""
     from app.core.config import settings
 
-    provider = settings.HEALERRAG_DOCUMENT_PARSER.lower()
+    provider = settings.HEALERRAG_DOCUMENT_PARSER.strip().lower()
 
     if provider == "marker":
         from app.services.document_parser.marker_parser import MarkerDocumentParser
 
         return MarkerDocumentParser(workspace_id, output_dir)
 
-    # Default: docling
-    from app.services.document_parser.docling_parser import DoclingDocumentParser
+    if provider == "mineru":
+        from app.services.document_parser.mineru_parser import MineruDocumentParser
 
-    return DoclingDocumentParser(workspace_id, output_dir)
+        return MineruDocumentParser(workspace_id, output_dir)
+
+    if provider == "docling":
+        from app.services.document_parser.docling_parser import DoclingDocumentParser
+
+        return DoclingDocumentParser(workspace_id, output_dir)
+
+    raise ValueError(
+        "Unsupported HEALERRAG_DOCUMENT_PARSER value: "
+        f"{settings.HEALERRAG_DOCUMENT_PARSER!r}. "
+        "Expected one of: 'docling', 'marker', 'mineru'."
+    )
 
 
 __all__ = [

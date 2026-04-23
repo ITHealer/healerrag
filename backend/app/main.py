@@ -161,7 +161,7 @@ async def ready():
 from app.api.router import api_router  # noqa: E402
 app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
-# Static files — document images extracted (Docling)
+# Static files — document images extracted by parsers
 _docling_data = Path(__file__).resolve().parent.parent / "data" / "docling"
 _docling_data.mkdir(parents=True, exist_ok=True)
 app.mount("/static/doc-images", StaticFiles(directory=str(_docling_data)), name="static_doc_images")

@@ -55,7 +55,6 @@ router = APIRouter(prefix="/documents", tags=["documents"])
 UPLOAD_DIR = settings.BASE_DIR / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
-ALLOWED_EXTENSIONS = {".pdf", ".txt", ".md", ".docx", ".pptx"}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 # ---------------------------------------------------------------------------
@@ -161,11 +160,20 @@ async def upload_document(
     if kb is None:
         raise NotFoundError("KnowledgeBase", workspace_id)
 
+    from app.services.document_parser import get_document_parser
+
+    allowed_extensions = get_document_parser(
+        workspace_id=workspace_id
+    ).supported_extensions()
+
     ext = Path(file.filename).suffix.lower()
-    if ext not in ALLOWED_EXTENSIONS:
+    if ext not in allowed_extensions:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File type {ext} not allowed. Allowed: {ALLOWED_EXTENSIONS}"
+            detail=(
+                f"File type {ext} not allowed. "
+                f"Allowed: {sorted(allowed_extensions)}"
+            ),
         )
 
     content = await file.read()

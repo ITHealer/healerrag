@@ -596,7 +596,7 @@ async def reindex_workspace(
 
     # Delete old vector collection (required when embedding dimensions change)
     try:
-        from app.services.vector_store import get_vector_store
+        from app.services.retrieval.vector_store import get_vector_store
         vs = get_vector_store(workspace_id)
         vs.delete_collection()
         logger.info(f"Deleted old vector collection for workspace {workspace_id}")
@@ -762,7 +762,7 @@ async def get_document_chunks(
 
 async def _get_kg_service(workspace_id: int):
     """Get KnowledgeGraphService for a knowledge base (if HEALERRAG is active)."""
-    from app.services.knowledge_graph_service import KnowledgeGraphService
+    from app.services.knowledge_graph.knowledge_graph_service import KnowledgeGraphService
     return KnowledgeGraphService(workspace_id)
 
 

@@ -10,11 +10,13 @@ Install: ``pip install marker-pdf[full]``
 """
 from __future__ import annotations
 
+import argparse
 import json
 import logging
 import re
 import time
 import uuid
+from dataclasses import asdict
 from pathlib import Path
 from typing import Optional
 
@@ -210,8 +212,7 @@ class MarkerDocumentParser(BaseDocumentParser):
         if not marker_images or not settings.HEALERRAG_ENABLE_IMAGE_EXTRACTION:
             return []
 
-        images_dir = self.output_dir / "images"
-        images_dir.mkdir(parents=True, exist_ok=True)
+        images_dir = self._get_served_images_dir()
 
         images: list[ExtractedImage] = []
         count = 0
@@ -524,8 +525,8 @@ class MarkerDocumentParser(BaseDocumentParser):
         original_filename: str,
     ) -> ParsedDocument:
         """Fallback: parse TXT/MD with legacy loader."""
-        from app.services.document_loader import load_document
-        from app.services.chunker import DocumentChunker
+        from app.services.loader.document_loader import load_document
+        from app.services.chunking.chunker import DocumentChunker
 
         loaded = load_document(str(file_path))
         chunker = DocumentChunker(chunk_size=500, chunk_overlap=50)
@@ -555,3 +556,133 @@ class MarkerDocumentParser(BaseDocumentParser):
             images=[],
             tables_count=0,
         )
+
+
+def _build_cli_parser() -> argparse.ArgumentParser:
+    """Build CLI parser for local Marker parsing tests."""
+    parser = argparse.ArgumentParser(
+        description=(
+            "Run MarkerDocumentParser on a local document and export parse artifacts "
+            "to an output folder for inspection."
+        )
+    )
+    parser.add_argument(
+        "input_path",
+        help="Path to input document (pdf, docx, pptx, xlsx, html, epub, txt, md).",
+    )
+    parser.add_argument(
+        "--output-dir",
+        required=True,
+        help="Destination folder to write parser output artifacts.",
+    )
+    parser.add_argument(
+        "--workspace-id",
+        type=int,
+        default=0,
+        help="Workspace ID used to initialize parser context (default: 0).",
+    )
+    parser.add_argument(
+        "--document-id",
+        type=int,
+        default=1,
+        help="Document ID used in output metadata (default: 1).",
+    )
+    parser.add_argument(
+        "--log-level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Logging level for this parser test run.",
+    )
+    return parser
+
+
+def _run_cli() -> int:
+    """Run parser from CLI and export inspectable artifacts."""
+    args = _build_cli_parser().parse_args()
+    logging.basicConfig(
+        level=getattr(logging, args.log_level),
+        format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
+    )
+
+    input_path = Path(args.input_path).expanduser().resolve()
+    if not input_path.exists():
+        logger.error("Input file not found: %s", input_path)
+        return 1
+
+    output_root = Path(args.output_dir).expanduser().resolve()
+    run_dir = output_root / f"{input_path.stem}_{int(time.time())}"
+    run_dir.mkdir(parents=True, exist_ok=True)
+
+    logger.info("Running Marker parser on: %s", input_path)
+    logger.info("Writing artifacts to: %s", run_dir)
+
+    parser = MarkerDocumentParser(
+        workspace_id=args.workspace_id,
+        output_dir=run_dir,
+    )
+
+    try:
+        result = parser.parse(
+            file_path=input_path,
+            document_id=args.document_id,
+            original_filename=input_path.name,
+        )
+    except Exception as exc:
+        logger.exception("Failed to parse document: %s", exc)
+        return 1
+
+    markdown_path = run_dir / "parsed_markdown.md"
+    chunks_path = run_dir / "chunks.json"
+    images_path = run_dir / "images.json"
+    tables_path = run_dir / "tables.json"
+    summary_path = run_dir / "summary.json"
+
+    markdown_path.write_text(result.markdown, encoding="utf-8")
+    chunks_path.write_text(
+        json.dumps([asdict(chunk) for chunk in result.chunks], ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    images_path.write_text(
+        json.dumps([asdict(image) for image in result.images], ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+    tables_path.write_text(
+        json.dumps([asdict(table) for table in result.tables], ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    summary = {
+        "input_path": str(input_path),
+        "output_dir": str(run_dir),
+        "parser_name": parser.parser_name,
+        "workspace_id": args.workspace_id,
+        "document_id": args.document_id,
+        "page_count": result.page_count,
+        "chunk_count": len(result.chunks),
+        "image_count": len(result.images),
+        "table_count": len(result.tables),
+        "files": {
+            "markdown": str(markdown_path),
+            "chunks": str(chunks_path),
+            "images": str(images_path),
+            "tables": str(tables_path),
+        },
+    }
+    summary_path.write_text(
+        json.dumps(summary, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+    logger.info(
+        "Parse completed: pages=%s chunks=%s images=%s tables=%s",
+        result.page_count,
+        len(result.chunks),
+        len(result.images),
+        len(result.tables),
+    )
+    logger.info("Summary file: %s", summary_path)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(_run_cli())

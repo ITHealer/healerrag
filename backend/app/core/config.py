@@ -76,9 +76,27 @@ class Settings(BaseSettings):
     HEALERRAG_MAX_IMAGES_PER_DOC: int = 50 # Giới hạn ảnh tối đa mỗi file
     HEALERRAG_ENABLE_FORMULA_ENRICHMENT: bool = True
 
-    # Document Parser provider: "docling" (default) or "marker" (lighter, better math)
+    # Document Parser provider: "docling" (default), "marker", or "mineru"
     HEALERRAG_DOCUMENT_PARSER: str = "docling"
     HEALERRAG_MARKER_USE_LLM: bool = False
+    HEALERRAG_MINERU_BACKEND: str = Field("vlm-auto-engine", env="HEALERRAG_MINERU_BACKEND")
+    HEALERRAG_MINERU_SOURCE: str = Field("local", env="HEALERRAG_MINERU_SOURCE")
+    HEALERRAG_MINERU_MODEL_ID: str = Field(
+        "opendatalab/MinerU2.5-Pro-2604-1.2B",
+        env="HEALERRAG_MINERU_MODEL_ID",
+    )
+    HEALERRAG_MINERU_MODELS_DIR: Path = Field(
+        Path(__file__).resolve().parent.parent.parent / "models" / "mineru_models",
+        env="HEALERRAG_MINERU_MODELS_DIR",
+    )
+    HEALERRAG_MINERU_PIPELINE_MODEL_DIR: str = Field(
+        "",
+        env="HEALERRAG_MINERU_PIPELINE_MODEL_DIR",
+    )
+    HEALERRAG_MINERU_CONFIG_VERSION: str = Field(
+        "1.3.1",
+        env="HEALERRAG_MINERU_CONFIG_VERSION",
+    )
 
     # Processing timeout (minutes) — stale documents auto-recover to FAILED
     HEALERRAG_PROCESSING_TIMEOUT_MINUTES: int = 10

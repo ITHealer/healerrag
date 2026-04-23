@@ -333,8 +333,7 @@ class DoclingDocumentParser(BaseDocumentParser):
         if not settings.HEALERRAG_ENABLE_IMAGE_EXTRACTION:
             return [], []
 
-        images_dir = self.output_dir / "images"
-        images_dir.mkdir(parents=True, exist_ok=True)
+        images_dir = self._get_served_images_dir()
 
         images: list[ExtractedImage] = []
         pic_to_image_idx: list[int] = []
@@ -507,8 +506,8 @@ class DoclingDocumentParser(BaseDocumentParser):
         original_filename: str,
     ) -> ParsedDocument:
         """Fallback: parse TXT/MD with legacy loader."""
-        from app.services.document_loader import load_document
-        from app.services.chunker import DocumentChunker
+        from app.services.loader.document_loader import load_document
+        from app.services.chunking.chunker import DocumentChunker
 
         loaded = load_document(str(file_path))
         chunker = DocumentChunker(chunk_size=500, chunk_overlap=50)

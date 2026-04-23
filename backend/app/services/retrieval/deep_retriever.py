@@ -22,10 +22,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.models.document import Document, DocumentImage, DocumentTable
-from app.services.embedder import EmbeddingService
-from app.services.vector_store import VectorStore
-from app.services.knowledge_graph_service import KnowledgeGraphService
-from app.services.reranker import RerankerService, get_reranker_service
+from app.services.embeddings.embedder import EmbeddingService
+from app.services.retrieval.vector_store import VectorStore
+from app.services.knowledge_graph.knowledge_graph_service import KnowledgeGraphService
+from app.services.retrieval.reranker import RerankerService, get_reranker_service
 from app.services.models.parsed_document import (
     Citation,
     DeepRetrievalResult,

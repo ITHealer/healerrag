@@ -151,14 +151,14 @@ async def delete_workspace(
 
     # Clean up vector store and KG data
     try:
-        from app.services.vector_store import get_vector_store
+        from app.services.retrieval.vector_store import get_vector_store
         vs = get_vector_store(workspace_id)
         vs.delete_collection()
     except Exception:
         pass
 
     try:
-        from app.services.knowledge_graph_service import KnowledgeGraphService
+        from app.services.knowledge_graph.knowledge_graph_service import KnowledgeGraphService
         kg = KnowledgeGraphService(workspace_id)
         await kg.delete_project_data()
     except Exception:
